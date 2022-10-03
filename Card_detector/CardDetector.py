@@ -1,6 +1,4 @@
 
-
-# Import  packages
 import cv2
 import numpy as np
 import time
@@ -9,22 +7,22 @@ import Cards
 import VideoStream
 
 
-# Define constants and initialize variables
+# Konstans és változók
 
-## Camera settings
+## Kamera
 IM_WIDTH = 1280
 IM_HEIGHT = 720 
 FRAME_RATE = 10
 
-## Initialize calculated frame rate 
+## Kistzámolt frame rate számolása
 frame_rate_calc = 1
 freq = cv2.getTickFrequency()
 
-## Define font to use
+## Használandó betűtípus meghatározása
 font = cv2.FONT_HERSHEY_SIMPLEX
 
 videostream = VideoStream.VideoStream((IM_WIDTH,IM_HEIGHT),FRAME_RATE,2,0).start()
-time.sleep(1) # Give the camera time to warm up
+time.sleep(1) 
 
 
 path = 'Card_Imgs/'
@@ -33,46 +31,45 @@ train_suits = Cards.load_suits( path)
 
 
 
-# The main loop repeatedly grabs frames from the video stream
-# and processes them to find and identify playing cards.
+# A fő ciklus ismételten megragadja a képkockákat a videófolyamból, és feldolgozza azokat, hogy megtalálja és azonosítsa a játékkártyákat.
 
 cam_quit = 0 # Loop control variable
 
-# Begin capturing frames
+# Képkockák rögzítésének megkezdése
 while cam_quit == 0:
 
-    # Grab frame from video stream
+    # Képkocka kinyerése a videófolyamból
     image = videostream.read()
     t1 = cv2.getTickCount()
 
-    # Pre-process camera image (gray, blur, and threshold it)
+    # Kamera képek előfeldolgozása (gray, blur,  threshold)
     pre_proc = Cards.preprocess_image(image)
 	
-    # Find and sort the contours of all cards in the image (query cards)
+    # A képen lévő összes kártya kontúrjának megkeresése és rendezése (query cards)
     cnts_sort, cnt_is_card = Cards.find_cards(pre_proc)
 
-    # If there are no contours, do nothing
+    # Ha nincs kontúr akkor ne csináljon semmit
     if len(cnts_sort) != 0:
 
-        # Initialize a new "cards" list to assign the card objects.
-        # k indexes the newly made array of cards.
+        # Egy új "kártyák" lista inicializálása a kártyaobjektumok hozzárendeléséhez.
+        # k indexek az új kártya tömböknek
         cards = []
         k = 0
 
-        # For each contour detected:
+        # Adott kontúr detektálása
         for i in range(len(cnts_sort)):
             if (cnt_is_card[i] == 1):
 
                 cards.append(Cards.preprocess_card(cnts_sort[i],image))
 
-                # Find the best rank and suit match for the card.
+                # Keresse meg a kártyának legjobban megfelelő rangot és színt.
                 cards[k].best_rank_match,cards[k].best_suit_match,cards[k].rank_diff,cards[k].suit_diff = Cards.match_card(cards[k],train_ranks,train_suits)
 
-                # Draw center point and match result on the image.
+                # Középpont rajzolása 
                 image = Cards.draw_results(image, cards[k])
                 k = k + 1
 	    
-        # Draw card contours on image 
+        # Kontúrok rajzolása
         if (len(cards) != 0):
             temp_cnts = []
             for i in range(len(cards)):
@@ -85,7 +82,7 @@ while cam_quit == 0:
   
     cv2.imshow("Card Detector",image)
 
-    # Calculate framerate
+    # Frame rate kalkuláció
     t2 = cv2.getTickCount()
     time1 = (t2-t1)/freq
     frame_rate_calc = 1/time1
