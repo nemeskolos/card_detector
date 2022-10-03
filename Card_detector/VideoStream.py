@@ -24,61 +24,56 @@ class VideoStream:
             self.stream = self.camera.capture_continuous(
                 self.rawCapture, format = "bgr", use_video_port = True)
 
-            # Initialize variable to store the camera frame
             self.frame = []
 
         if self.PiOrUSB == 2: # USB camera
-            # Initialize the USB camera and the camera image stream
             self.stream = cv2.VideoCapture(src)
             ret = self.stream.set(3,resolution[0])
             ret = self.stream.set(4,resolution[1])
             ret = self.stream.set(5,framerate) #Doesn't seem to do anything so it's commented out
 
-            # Read first frame from the stream
+            # első frame3
             (self.grabbed, self.frame) = self.stream.read()
 
-    # Create a variable to control when the camera is stopped
+    # változó a kamera megállásához
         self.stopped = False
 
     def start(self):
-    # Start the thread to read frames from the video stream
+    # videóból való beolvasás
         Thread(target=self.update,args=()).start()
         return self
 
     def update(self):
 
-        if self.PiOrUSB == 1: # PiCamera
+        if self.PiOrUSB == 1: # PiCamera - we did not use this 
             
-            # Keep looping indefinitely until the thread is stopped
+            # A ciklus a végtelenségig folytatódik, amíg a szál le nem áll.
             for f in self.stream:
-                # Grab the frame from the stream and clear the stream
-                # in preparation for the next frame
+                # Ragadja ki a képkockát a folyamból, és törölje a folyamot a következő képkocka előkészítéséhez.
                 self.frame = f.array
                 self.rawCapture.truncate(0)
 
                 if self.stopped:
-                    # Close camera resources
+                    #kamera forrás leállítás
                     self.stream.close()
                     self.rawCapture.close()
                     self.camera.close()
 
         if self.PiOrUSB == 2: # USB camera
 
-            # Keep looping indefinitely until the thread is stopped
+            # 
             while True:
-                # If the camera is stopped, stop the thread
                 if self.stopped:
-                    # Close camera resources
                     self.stream.release()
                     return
 
-                # Otherwise, grab the next frame from the stream
+                # kövi framet kapjuk el
                 (self.grabbed, self.frame) = self.stream.read()
 
     def read(self):
-        # Return the most recent frame
+        # vissza legjobb framéhetz
         return self.frame
 
     def stop(self):
-        # Indicate that the camera and thread should be stopped
+        # kamerának mutatja hogy álljon le
         self.stopped = True
