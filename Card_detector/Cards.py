@@ -1,12 +1,4 @@
-############## Playing Card Detector Functions ###############
-#
-# Author: Evan Juras
-# Date: 9/5/17
-# Description: Functions and classes for CardDetector.py that perform 
-# various steps of the card detection algorithm
 
-
-# Import necessary packages
 import numpy as np
 import cv2
 import time
@@ -37,7 +29,7 @@ CARD_MIN_AREA = 25000
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 
-### Structures to hold query card and train card information ###
+
 
 class Query_card:
     """Structure to store information about query cards in the camera image."""
@@ -109,15 +101,6 @@ def preprocess_image(image):
     gray = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray,(5,5),0)
 
-    # The best threshold level depends on the ambient lighting conditions.
-    # For bright lighting, a high threshold must be used to isolate the cards
-    # from the background. For dim lighting, a low threshold must be used.
-    # To make the card detector independent of lighting conditions, the
-    # following adaptive threshold method is used.
-    #
-    # A background pixel in the center top of the image is sampled to determine
-    # its intensity. The adaptive threshold is set at 50 (THRESH_ADDER) higher
-    # than that. This allows the threshold to adapt to the lighting conditions.
     img_w, img_h = np.shape(image)[:2]
     bkg_level = gray[int(img_h/100)][int(img_w/2)]
     thresh_level = bkg_level + BKG_THRESH
@@ -144,18 +127,10 @@ def find_cards(thresh_image):
     hier_sort = []
     cnt_is_card = np.zeros(len(cnts),dtype=int)
 
-    # Fill empty lists with sorted contour and sorted hierarchy. Now,
-    # the indices of the contour list still correspond with those of
-    # the hierarchy list. The hierarchy array can be used to check if
-    # the contours have parents or not.
     for i in index_sort:
         cnts_sort.append(cnts[i])
         hier_sort.append(hier[0][i])
 
-    # Determine which of the contours are cards by applying the
-    # following criteria: 1) Smaller area than the maximum card size,
-    # 2), bigger area than the minimum card size, 3) have no parents,
-    # and 4) have four corners
 
     for i in range(len(cnts_sort)):
         size = cv2.contourArea(cnts_sort[i])
